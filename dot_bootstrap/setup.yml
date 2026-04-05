@@ -1,0 +1,82 @@
+---
+- name: Set up system
+  hosts: localhost
+  become: true
+  gather_facts: true
+  connection: local
+
+  tasks:
+    - name: Get user
+      ansible.builtin.set_fact:
+        remote_user: '{{ ansible_env.SUDO_USER or ansible_user_id }}'
+
+    - name: Create `aur-builder` user
+      ansible.builtin.user:
+        name: aur-builder
+        create_home: true
+        group: wheel
+
+    - name: Give permission for `aur-builder` to run `sudo pacman` without a password
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers.d/aur-builder
+        line: 'aur-builder ALL=(ALL) NOPASSWD: /usr/bin/pacman'
+        create: true
+        mode: '0644'
+        validate: visudo -cf %s
+
+    - name: Check for yay installation
+      ansible.builtin.command: which yay
+      register: yay_check
+      changed_when: false
+
+    - name: Install yay
+      become: true
+      become_user: aur-builder
+      when: yay_check.rc != 0
+      block:
+        - name: Clone yay repo
+          ansible.builtin.git:
+            repo: https://aur.archlinux.org/yay-bin.git
+            dest: /tmp/yay-bin
+            version: latest
+
+        - name: Build and install yay
+          ansible.builtin.command:
+            cmd: makepkg -si --noconfirm
+            chdir: /tmp/yay-bin
+          changed_when: true
+
+    - name: Install packages
+      community.general.pacman:
+        name:
+          - git
+          - base-devel
+          - zsh
+          - fzf
+          - gcc
+          - make
+          - ripgrep
+          - fd
+          - tree-sitter-cli
+          - unzip
+          - neovim
+          - nodejs
+          - npm
+          - tmux
+        executable: yay
+        extra_args: --builddir /var/cache/yay
+
+    - name: Change shell to Zsh
+      ansible.builtin.user:
+        name: '{{ remote_user }}'
+        shell: /usr/bin/zsh
+
+    - name: Install TPM
+      ansible.builtin.git:
+        repo: https://github.com/tmux-plugins/tpm
+        dest: ~{{ remote_user }}/.tmux/plugins/tpm
+        version: lateset
+
+    - name: Install TPM plugins
+      ansible.builtin.command: ~{{ remote_user }}/.tmux/plugins/tpm/bin/install_plugins
+      changed_when: true
