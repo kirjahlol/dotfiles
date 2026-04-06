@@ -18,4 +18,4 @@ esac
 
 echo "Ansible installation done"
 
-ansible-playbook ~/.bootstrap/setup.yml --ask-become-pass
+ansible-playbook ~/ansible/setup.yml --ask-become-pass

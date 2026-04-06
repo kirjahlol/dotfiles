@@ -8,7 +8,7 @@
   tasks:
     - name: Get user
       ansible.builtin.set_fact:
-        remote_user: '{{ ansible_env.SUDO_USER or ansible_user_id }}'
+        remote_regular_user: '{{ ansible_facts["env"].SUDO_USER or ansible_facts["user_id"] }}'
 
     - name: Create `aur-builder` user
       ansible.builtin.user:
@@ -38,7 +38,7 @@
           ansible.builtin.git:
             repo: https://aur.archlinux.org/yay-bin.git
             dest: /tmp/yay-bin
-            version: latest
+            version: next
 
         - name: Build and install yay
           ansible.builtin.command:
@@ -68,15 +68,11 @@
 
     - name: Change shell to Zsh
       ansible.builtin.user:
-        name: '{{ remote_user }}'
+        name: '{{ remote_regular_user }}'
         shell: /usr/bin/zsh
 
     - name: Install TPM
       ansible.builtin.git:
         repo: https://github.com/tmux-plugins/tpm
-        dest: ~{{ remote_user }}/.tmux/plugins/tpm
-        version: lateset
-
-    - name: Install TPM plugins
-      ansible.builtin.command: ~{{ remote_user }}/.tmux/plugins/tpm/bin/install_plugins
-      changed_when: true
+        dest: ~{{ remote_regular_user }}/.tmux/plugins/tpm
+        version: master
