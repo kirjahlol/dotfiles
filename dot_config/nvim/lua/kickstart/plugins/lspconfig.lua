@@ -166,6 +166,7 @@ return {
         ansiblels = {
           filetypes = { 'yaml', 'yaml.ansible', 'ansible' },
         },
+        marksman = {},
       }
 
       -- Ensure the servers and tools above are installed
@@ -182,6 +183,8 @@ return {
         'ansible-language-server',
         'ansible-lint',
         'yamlfix',
+        'markdownlint-cli2',
+        'markdown-toc',
       })
 
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
