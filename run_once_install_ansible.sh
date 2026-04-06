@@ -4,7 +4,7 @@ os="$(uname -s)"
 case "$os" in
   Linux*)
     if [ -f /etc/arch-release ]; then
-      sudo pacman -S ansible
+      sudo pacman -S --needed ansible
     else
       echo "Unsupported Linux distribution"
       exit 1
