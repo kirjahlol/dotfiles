@@ -60,8 +60,7 @@
           - tree-sitter-cli
           - unzip
           - neovim
-          - nodejs
-          - npm
+          - nvm
           - tmux
         executable: yay
         extra_args: --builddir /var/cache/yay
